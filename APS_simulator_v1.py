@@ -561,9 +561,21 @@ if analyze_button:
 
                         
                         nd = round(y_od, number_of_decimals) # round generated values according to number of decimals of the selected data entered by user
-                        nd_cat= pd.cut(nd, bins, labels=names) # Categorization of the new data
-                        nd_cat_n = nd_cat.replace(to_replace=names,
-                        value=value, inplace=False)
+                        
+                        # Categorization of the new data
+                        nd_cat = pd.cut(nd, bins, labels=names)
+                        
+                        # Check if `nd_cat` is a categorical column
+                        if pd.api.types.is_categorical_dtype(nd_cat):
+                            # Create a dictionary mapping old labels (`names`) to new values (`value`)
+                            category_mapping = dict(zip(names, value))
+                            
+                            # Use `rename_categories` to modify categories directly
+                            nd_cat_n = nd_cat.cat.rename_categories({cat: category_mapping.get(cat, cat) for cat in nd_cat.cat.categories})
+                        else:
+                            # Use replace for non-categorical data (if it happens to be the case)
+                            nd_cat_n = nd_cat.replace(to_replace=names, value=value, inplace=False)
+                       
                         n_cat_n.append(nd_cat_n)
                         n_cat_n = [item for sublist in n_cat_n for item in sublist]
                         n_cat_n = pd.Series(n_cat_n)
@@ -1243,15 +1255,25 @@ if analyze_button:
                             nd = y_od + result_t1*f # new data, bias applied
 
                             nd = round(nd, number_of_decimals) # round generated values according to number of decimals of the selected data entered by user
-                            nd_cat= pd.cut(nd, bins, labels=names) # Categorization of the new data
-                            nd_cat_n = nd_cat.replace(to_replace=names,
-                            value=value, inplace=False)
+                                                        
+                            # Categorization of the new data
+                            nd_cat = pd.cut(nd, bins, labels=names)
+                            
+                            # Check if `nd_cat` is a categorical column
+                            if pd.api.types.is_categorical_dtype(nd_cat):
+                                # Create a dictionary mapping old labels (`names`) to new values (`value`)
+                                category_mapping = dict(zip(names, value))
+                                
+                                # Use `rename_categories` to modify categories directly
+                                nd_cat_n = nd_cat.cat.rename_categories({cat: category_mapping.get(cat, cat) for cat in nd_cat.cat.categories})
+                            else:
+                                # Use replace for non-categorical data (if it happens to be the case)
+                                nd_cat_n = nd_cat.replace(to_replace=names, value=value, inplace=False)
+                         
                             n_cat_n.append(nd_cat_n)
                             n_cat_n = [item for sublist in n_cat_n for item in sublist]
                             n_cat_n = pd.Series(n_cat_n)
                             n_cat_n = n_cat_n.fillna(1)
-
-                            
                             
                             # urel cleaned original data
                             result_t1 = round(result_t1, number_of_decimals) # round MU cleaned values according to number of decimals of the selected data entered by user
