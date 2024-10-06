@@ -1,10 +1,9 @@
 # Developed by Hikmet Can Çubukçu
 
+import asyncio
 import streamlit as st
-st.set_page_config(layout="wide", page_title="APS Simulator", page_icon="🚦")
 import statistics
 import pandas as pd
-pd.set_option('future.no_silent_downcasting', True)
 import numpy as np
 import time
 from math import sqrt
@@ -20,12 +19,12 @@ with st.sidebar:
                       "Setting APS for imprecision and bias - Analytical rerun simulation", 
                       "Setting APS for imprecision and bias - Resampling simulation"])
     
-    with open('./template/template_data_fasting_glucose.xlsx', "rb") as template_file:
+    with open('template.xlsx', "rb") as template_file:
         template_byte = template_file.read()
     # download template excel file
     st.download_button(label="Click to Download Template File",
                         data=template_byte,
-                        file_name="template_data_fasting_glucose.xlsx",
+                        file_name="template.xlsx",
                         mime='application/octet-stream')
     
     # Upload file widget
@@ -132,10 +131,8 @@ with tab1:
                 This web application is designed to help laboratory professinals to determine 
                 their analytical performance specifications for relative standard measurement uncertainty, imprecision, and bias based on their intended clinical setting and population of concern.
 
-                **If the simulation process exceeds 30 minutes, the web application may encounter interruptions and restart. 
-                For more enduring simulations, it is advisable to opt for the desktop application. 
-                To do so, kindly download the executable file provided below:**
                 """)
+
     st.markdown("""            
                 #### Instructions
                 
@@ -341,6 +338,7 @@ if analyze_button:
         with st.spinner('**Please wait... Status:**'):
             placeholder = st.empty()
             placeholder.success('**Data preprocessing**', icon = "📂")
+            await asyncio.sleep(3)
             
             column_name = analyte_name_box
             # Numeric data to categorical data conversion
@@ -391,9 +389,17 @@ if analyze_button:
             analyte_last_df = pd.concat([analyte_data, cat_analyte_df],axis = 1)
 
             # Category to number conversion
-            analyte_last_df['cat_n'] = analyte_last_df['Analyte_category'].replace(
-                to_replace=names,
-                value=value, inplace=False)
+            #analyte_last_df['cat_n'] = analyte_last_df['Analyte_category'].replace(
+             #   to_replace=names,
+              #  value=value, inplace=False)
+            analyte_last_df['Analyte_category'] = analyte_last_df['Analyte_category'].astype('category')
+
+            # Create a dictionary for category-to-value mapping
+            category_value_map = {name: val for name, val in zip(names, value)}
+
+            # Use .cat.rename_categories to map category names to values
+            analyte_last_df['cat_n'] = analyte_last_df['Analyte_category'].cat.rename_categories(category_value_map)
+
 
             with tab2:
                 # histogram of original data
@@ -483,6 +489,7 @@ if analyze_button:
             
             # ------------------------------------------------------------------------------------
             placeholder.success('**Simulation**', icon ="🔄")
+            await asyncio.sleep(3)
             ## SIMULATION CODES
             
             ### Selection of original data and original data category
@@ -561,21 +568,22 @@ if analyze_button:
 
                         
                         nd = round(y_od, number_of_decimals) # round generated values according to number of decimals of the selected data entered by user
-                        
-                        # Categorization of the new data
-                        nd_cat = pd.cut(nd, bins, labels=names)
-                        
-                        # Check if `nd_cat` is a categorical column
-                        if pd.api.types.is_categorical_dtype(nd_cat):
-                            # Create a dictionary mapping old labels (`names`) to new values (`value`)
-                            category_mapping = dict(zip(names, value))
-                            
-                            # Use `rename_categories` to modify categories directly
-                            nd_cat_n = nd_cat.cat.rename_categories({cat: category_mapping.get(cat, cat) for cat in nd_cat.cat.categories})
-                        else:
-                            # Use replace for non-categorical data (if it happens to be the case)
-                            nd_cat_n = nd_cat.replace(to_replace=names, value=value, inplace=False)
+                        nd_cat= pd.cut(nd, bins, labels=names) # Categorization of the new data
+
+                        #nd_cat_n = nd_cat.replace(to_replace=names,
+                        #value=value, inplace=False)
+
+                        # Ensure 'nd_cat' is of categorical type
+                        nd_cat = nd_cat.astype('category')
+
+                        # Rename categories using .cat.rename_categories
+                        category_value_map = {name: val for name, val in zip(names, value)}
+                        nd_cat = nd_cat.cat.rename_categories(category_value_map)
+
+                        # Assign the renamed categories (numeric values) directly to 'nd_cat_n'
+                        nd_cat_n = nd_cat
                        
+
                         n_cat_n.append(nd_cat_n)
                         n_cat_n = [item for sublist in n_cat_n for item in sublist]
                         n_cat_n = pd.Series(n_cat_n)
@@ -584,7 +592,15 @@ if analyze_button:
                         # urel cleaned original data
                         result_t1 = round(result_t1, number_of_decimals) # round MU cleaned values according to number of decimals of the selected data entered by user
                         result_t1_cat= pd.cut(result_t1, bins, labels=names) # Categorization of the new data
-                        result_t1_cat_n_value = result_t1_cat.replace(to_replace=names,value=value, inplace=False)
+                        
+                        
+                        #result_t1_cat_n_value = result_t1_cat.replace(to_replace=names,value=value, inplace=False)
+                        result_t1_cat = result_t1_cat.astype('category')
+
+                        # Rename categories using .cat.rename_categories
+                        category_value_map = {name: val for name, val in zip(names, value)}
+                        result_t1_cat_n_value = result_t1_cat.cat.rename_categories(category_value_map)
+
                         result_t1_cat_n.append(result_t1_cat_n_value)
                         result_t1_cat_n = [item for sublist in result_t1_cat_n for item in sublist]
                         result_t1_cat_n = pd.Series(result_t1_cat_n)
@@ -709,6 +725,7 @@ if analyze_button:
                 
                 #-------------------------------------------------------------------------------------------
                 placeholder.success('**Visualization and Calculation**',icon="📉")
+                await asyncio.sleep(3)
                 ## Visiualisation of Data
                 ### Contour Plot
                 # Accuracy percentage unit conversion by multiplying 100
@@ -1207,7 +1224,7 @@ if analyze_button:
                         col22.plotly_chart(fig, theme="streamlit", use_container_width=True) # show figure 
                         st.markdown("---")
                 placeholder.success('**Done**', icon="✅")
-                time.sleep(2)
+                await asyncio.sleep(3)
                 placeholder.empty()
 
 
@@ -1255,30 +1272,38 @@ if analyze_button:
                             nd = y_od + result_t1*f # new data, bias applied
 
                             nd = round(nd, number_of_decimals) # round generated values according to number of decimals of the selected data entered by user
-                                                        
-                            # Categorization of the new data
-                            nd_cat = pd.cut(nd, bins, labels=names)
-                            
-                            # Check if `nd_cat` is a categorical column
-                            if pd.api.types.is_categorical_dtype(nd_cat):
-                                # Create a dictionary mapping old labels (`names`) to new values (`value`)
-                                category_mapping = dict(zip(names, value))
-                                
-                                # Use `rename_categories` to modify categories directly
-                                nd_cat_n = nd_cat.cat.rename_categories({cat: category_mapping.get(cat, cat) for cat in nd_cat.cat.categories})
-                            else:
-                                # Use replace for non-categorical data (if it happens to be the case)
-                                nd_cat_n = nd_cat.replace(to_replace=names, value=value, inplace=False)
-                         
+                            nd_cat= pd.cut(nd, bins, labels=names) # Categorization of the new data
+
+                            #nd_cat_n = nd_cat.replace(to_replace=names,
+                            #value=value, inplace=False)
+                            # Ensure 'nd_cat' is of categorical type
+                            nd_cat = nd_cat.astype('category')
+
+                            # Rename categories using .cat.rename_categories
+                            category_value_map = {name: val for name, val in zip(names, value)}
+                            nd_cat = nd_cat.cat.rename_categories(category_value_map)
+
+                            # Assign the renamed categories (numeric values) directly to 'nd_cat_n'
+                            nd_cat_n = nd_cat
+
+
                             n_cat_n.append(nd_cat_n)
                             n_cat_n = [item for sublist in n_cat_n for item in sublist]
                             n_cat_n = pd.Series(n_cat_n)
                             n_cat_n = n_cat_n.fillna(1)
-                            
+
+                                                    
                             # urel cleaned original data
                             result_t1 = round(result_t1, number_of_decimals) # round MU cleaned values according to number of decimals of the selected data entered by user
                             result_t1_cat= pd.cut(result_t1, bins, labels=names) # Categorization of the new data
-                            result_t1_cat_n_value = result_t1_cat.replace(to_replace=names,value=value, inplace=False)
+                            
+                            #result_t1_cat_n_value = result_t1_cat.replace(to_replace=names,value=value, inplace=False)
+                            result_t1_cat = result_t1_cat.astype('category')
+
+                            # Rename categories using .cat.rename_categories
+                            category_value_map = {name: val for name, val in zip(names, value)}
+                            result_t1_cat_n_value = result_t1_cat.cat.rename_categories(category_value_map)
+
                             result_t1_cat_n.append(result_t1_cat_n_value)
                             result_t1_cat_n = [item for sublist in result_t1_cat_n for item in sublist]
                             result_t1_cat_n = pd.Series(result_t1_cat_n)
@@ -1413,6 +1438,7 @@ if analyze_button:
                 
                 #-------------------------------------------------------------------------------------------
                 placeholder.success('**Visualization and Calculation**',icon="📉")
+                await asyncio.sleep(3)
                 ## Visiualisation of Data
                 ### Contour Plot
                 # Accuracy percentage unit conversion by multiplying 100
@@ -1928,7 +1954,7 @@ if analyze_button:
                         st.markdown("---")               
                 
                 placeholder.success('**Done**', icon="✅")
-                time.sleep(2)
+                await asyncio.sleep(3)
                 placeholder.empty()
 
 
