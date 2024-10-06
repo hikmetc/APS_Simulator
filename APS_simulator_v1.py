@@ -391,8 +391,9 @@ if analyze_button:
             analyte_last_df = pd.concat([analyte_data, cat_analyte_df],axis = 1)
 
             # Category to number conversion
-            category_mapping = dict(zip(names, value))
-            analyte_last_df['cat_n'] = analyte_last_df['Analyte_category'].cat.rename_categories(category_mapping) 
+            analyte_last_df['cat_n'] = analyte_last_df['Analyte_category'].replace(
+                to_replace=names,
+                value=value, inplace=False)
 
             with tab2:
                 # histogram of original data
@@ -560,13 +561,9 @@ if analyze_button:
 
                         
                         nd = round(y_od, number_of_decimals) # round generated values according to number of decimals of the selected data entered by user
-                        
-                        # Create a dictionary to map old labels (`names`) to new values (`value`)
-                        category_mapping = dict(zip(names, value))
-                        
-                        # Modify categories using rename_categories
-                        nd_cat_n = nd_cat.cat.rename_categories(category_mapping)
-                        
+                        nd_cat= pd.cut(nd, bins, labels=names) # Categorization of the new data
+                        nd_cat_n = nd_cat.replace(to_replace=names,
+                        value=value, inplace=False)
                         n_cat_n.append(nd_cat_n)
                         n_cat_n = [item for sublist in n_cat_n for item in sublist]
                         n_cat_n = pd.Series(n_cat_n)
@@ -575,7 +572,7 @@ if analyze_button:
                         # urel cleaned original data
                         result_t1 = round(result_t1, number_of_decimals) # round MU cleaned values according to number of decimals of the selected data entered by user
                         result_t1_cat= pd.cut(result_t1, bins, labels=names) # Categorization of the new data
-                        result_t1_cat_n_value = result_t1_cat.cat.rename_categories(category_mapping)
+                        result_t1_cat_n_value = result_t1_cat.replace(to_replace=names,value=value, inplace=False)
                         result_t1_cat_n.append(result_t1_cat_n_value)
                         result_t1_cat_n = [item for sublist in result_t1_cat_n for item in sublist]
                         result_t1_cat_n = pd.Series(result_t1_cat_n)
@@ -1247,10 +1244,8 @@ if analyze_button:
 
                             nd = round(nd, number_of_decimals) # round generated values according to number of decimals of the selected data entered by user
                             nd_cat= pd.cut(nd, bins, labels=names) # Categorization of the new data
-                            
-                            category_mapping = dict(zip(names, value))
-                            nd_cat_n = nd_cat.cat.rename_categories(category_mapping)
-                            
+                            nd_cat_n = nd_cat.replace(to_replace=names,
+                            value=value, inplace=False)
                             n_cat_n.append(nd_cat_n)
                             n_cat_n = [item for sublist in n_cat_n for item in sublist]
                             n_cat_n = pd.Series(n_cat_n)
@@ -1261,8 +1256,7 @@ if analyze_button:
                             # urel cleaned original data
                             result_t1 = round(result_t1, number_of_decimals) # round MU cleaned values according to number of decimals of the selected data entered by user
                             result_t1_cat= pd.cut(result_t1, bins, labels=names) # Categorization of the new data
-                            result_t1_cat_n_value = result_t1_cat.cat.rename_categories(category_mapping)
-                            
+                            result_t1_cat_n_value = result_t1_cat.replace(to_replace=names,value=value, inplace=False)
                             result_t1_cat_n.append(result_t1_cat_n_value)
                             result_t1_cat_n = [item for sublist in result_t1_cat_n for item in sublist]
                             result_t1_cat_n = pd.Series(result_t1_cat_n)
