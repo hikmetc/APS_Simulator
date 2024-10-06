@@ -24,7 +24,7 @@ with st.sidebar:
     # download template excel file
     st.download_button(label="Click to Download Template File",
                         data=template_byte,
-                        file_name="template.xlsx",
+                        file_name="template_data_fasting_glucose.xlsx",
                         mime='application/octet-stream')
     
     # Upload file widget
