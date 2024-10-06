@@ -4,6 +4,7 @@ import streamlit as st
 st.set_page_config(layout="wide", page_title="APS Simulator", page_icon="🚦")
 import statistics
 import pandas as pd
+pd.set_option('future.no_silent_downcasting', True)
 import numpy as np
 import time
 from math import sqrt
