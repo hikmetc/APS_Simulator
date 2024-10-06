@@ -136,7 +136,6 @@ with tab1:
                 For more enduring simulations, it is advisable to opt for the desktop application. 
                 To do so, kindly download the executable file provided below:**
                 """)
-    st.info('**Desktop application download link for Windows:** [APS_Calculator_v_0.1.0.exe](https://drive.google.com/file/d/1-SjlhLRAFANJns6OXDWVaXjEhUDNkbDd/view?usp=sharing)')
     st.markdown("""            
                 #### Instructions
                 
