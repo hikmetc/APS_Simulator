@@ -172,11 +172,13 @@ with tab1:
                 """) 
 
 
-    st.info("""**For setting APS for measurement uncertainty - analytical rerun simulation; Please cite:** *Çubukçu, H.C., Vanstapel, F., Thelen M., van Schrojenstein Lantman, M., 
-    Bernabeu-Andreu, F. A., Mesko Brguljan P., Milinkovic, N., Linko, S., Panteghini, M., Boursier, G. 
-    (2023) APS Calculator: A Data-Driven Tool for Setting Outcome-Based Analytical Performance Specifications 
-    for Measurement Uncertainty Using Specific Clinical Requirements and Population Data. Clinical Chemistry 
-    and Laboratory Medicine (CCLM), (Ahead of a print) doi:10.1515/cclm-2023-0740*""")
+    st.info("""**For setting APS for measurement uncertainty - analytical rerun simulation; 
+            Please cite:** *Çubukçu HC, Vanstapel F, Thelen M, van Schrojenstein Lantman M, 
+            Bernabeu-Andreu FA, Meško Brguljan P, Milinkovic N, Linko S, Panteghini M, 
+            Boursier G. APS calculator: a data-driven tool for setting outcome-based 
+            analytical performance specifications for measurement uncertainty using specific 
+            clinical requirements and population data. Clin Chem Lab Med. 2023 Nov 17;62(4):597-607. 
+            doi: 10.1515/cclm-2023-0740. *""")
     
     st.markdown('---')
     content=""" **Disclaimer:**
@@ -188,17 +190,17 @@ with tab1:
     The user should exercise caution and consider relevant regulations, scientific literature, 
     and any other applicable guidelines when determining their analytical performance specifications. 
     It is crucial to ensure compliance with privacy, responsibility, and safety standards specific to the user's jurisdiction and intended application.
-    While every effort has been made to ensure the accuracy and reliability of the APS Calculator, 
+    While every effort has been made to ensure the accuracy and reliability of the APS Simulator, 
     it is important to understand that no tool can guarantee absolute accuracy or address all possible scenarios. 
     Therefore, users should use their professional judgment and seek additional expert advice when necessary.
-    The APS Calculator does not collect any personally identifiable information (PII) or sensitive data from users. 
+    The APS Simulator does not collect any personally identifiable information (PII) or sensitive data from users. 
     However, it is recommended to exercise general caution when using any online application and take necessary 
-    precautions to protect your privacy and data security. By using the APS Calculator, users acknowledge and 
+    precautions to protect your privacy and data security. By using the APS Simulator, users acknowledge and 
     agree that they assume all risks and responsibilities associated with its use. The continuous availability 
-    of the calculator cannot be guaranteed, as it may experience periods of unavailability due to various factors, 
+    of the simulator cannot be guaranteed, as it may experience periods of unavailability due to various factors, 
     including technical issues, maintenance, or unforeseen circumstances.The creators, developers, and maintainers 
-    of the APS Calculator shall not be held liable for any direct or indirect damages or losses arising from its use
-    or resulting from the APS calculator's temporary or permanent unavailability. It is advised to regularly 
+    of the APS Simulator shall not be held liable for any direct or indirect damages or losses arising from its use
+    or resulting from the APS Simulator's temporary or permanent unavailability. It is advised to regularly 
     review this disclaimer, as it may be updated to reflect any changes in regulations, best practices, or other relevant factors.*
             """
     st.warning(content, icon="⚠️")
@@ -1818,17 +1820,26 @@ if analyze_button:
                         st.plotly_chart(fig555, theme="streamlit", use_container_width=True)
                         
 
+                        
+                        # Define consistent color mapping for categories
+                        color_mapping = {
+                            f'≥{opt_agg_threshold}%': "#76C7C0",
+                            f'≥{des_agg_threshold}%': "#5DADE2",
+                            f'≥{min_agg_threshold}%': "#F4D03F",
+                            f'<{min_agg_threshold}%': "#EC7063"
+                        }
 
-
-
-
+                        # Ensure the order of categories
+                        category_order = ["≥99%", "≥95%", "≥90%", "<90%"]
+                        
+                        # agreement plot sublevel
                         fig123 = px.scatter(
                             merged_df2,
                             x='Bias',
                             y='Imprecision',
                             color='Agreement Category',
-                            color_discrete_sequence=px.colors.qualitative.T10,  # Choose a color scheme here
-                            category_orders={"Agreement Category": merged_df2['Agreement Category'].unique()},  # Ensure consistent category order
+                            color_discrete_map=color_mapping,  # Use custom color mapping
+                            category_orders={"Agreement Category": category_order},  # Set consistent category order
                             title='Hexbin-like Plot of Bias vs. Imprecision with Agreement Categories'
                         )
 
@@ -1845,8 +1856,113 @@ if analyze_button:
 
                         # Show the plot in Streamlit
                         st.plotly_chart(fig123, theme="streamlit", use_container_width=True)
+                        
+
+                        # sensitivity plot sublevel
+                        fig124 = px.scatter(
+                            merged_df2,
+                            x='Bias',
+                            y='Imprecision',
+                            color='Sensitivity Category',
+                            color_discrete_map=color_mapping,  # Use custom color mapping
+                            category_orders={"Sensitivity Category": category_order},  # Set consistent category order                            color_discrete_sequence=px.colors.qualitative.T10,  # Choose a color scheme here
+                            title='Hexbin-like Plot of Bias vs. Imprecision with Sensitivity Categories'
+                        )
+
+                        # Update marker size and style for better visual distinction
+                        fig124.update_traces(marker=dict(size=10, line=dict(width=1, color='black')), mode='markers')
+
+                        # Customize layout further if needed
+                        fig124.update_layout(
+                            xaxis_title='Bias',
+                            yaxis_title='Imprecision',
+                            legend_title='Sensitivity Category',
+                            template='plotly_white'
+                        )
+
+                        # Show the plot in Streamlit
+                        st.plotly_chart(fig124, theme="streamlit", use_container_width=True)
 
 
+                        # specificity plot sublevel
+                        fig125 = px.scatter(
+                            merged_df2,
+                            x='Bias',
+                            y='Imprecision',
+                            color='Specificity Category',
+                            color_discrete_map=color_mapping,  # Use custom color mapping
+                            category_orders={"Specificity Category": category_order},  # Set consistent category order       
+                            title='Hexbin-like Plot of Bias vs. Imprecision with Specificity Categories'
+                        )
+
+                        # Update marker size and style for better visual distinction
+                        fig125.update_traces(marker=dict(size=10, line=dict(width=1, color='black')), mode='markers')
+
+                        # Customize layout further if needed
+                        fig125.update_layout(
+                            xaxis_title='Bias',
+                            yaxis_title='Imprecision',
+                            legend_title='Specificity Category',
+                            template='plotly_white'
+                        )
+
+                        # Show the plot in Streamlit
+                        st.plotly_chart(fig125, theme="streamlit", use_container_width=True)
+
+
+
+                        # COMBINED PLOT
+                        # Create a new column to combine Sensitivity and Specificity Categories
+                        # Create a new column to merge and label Sensitivity and Specificity categories
+                        # Create a combined category column to highlight overlapping and separate categories
+                        merged_df2['Combined Category'] = merged_df2.apply(
+                            lambda row: f"≥{min_agg_threshold}% (Sensitivity & Specificity)" if (row['Sensitivity Category'] == f"≥{min_agg_threshold}%" or row['Sensitivity Category'] == f"≥{des_agg_threshold}%" or row['Sensitivity Category'] == f"≥{opt_agg_threshold}%") and (row['Specificity Category'] == f"≥{min_agg_threshold}%" or row['Specificity Category'] == f"≥{des_agg_threshold}%" or row['Specificity Category'] == f"≥{opt_agg_threshold}%")
+                            else f"≥{min_agg_threshold}% (Sensitivity)" if row['Sensitivity Category'] == f"≥{min_agg_threshold}%" or row['Sensitivity Category'] == f"≥{des_agg_threshold}%" or row['Sensitivity Category'] == f"≥{opt_agg_threshold}%"
+                            else f"≥{min_agg_threshold}% (Specificity)" if row['Specificity Category'] == f"≥{min_agg_threshold}%" or row['Specificity Category'] == f"≥{des_agg_threshold}%" or row['Specificity Category'] == f"≥{opt_agg_threshold}%"
+                            else "Other",
+                            axis=1
+                        )
+
+                        # Define custom color mapping for the combined plot
+                        combined_color_mapping = {
+                            f"≥{min_agg_threshold}% (Sensitivity & Specificity)": "#F4D03F",  # Yellow for overlap
+                            f"≥{min_agg_threshold}% (Sensitivity)": "#76C7C0",               # Teal for Sensitivity
+                            f"≥{min_agg_threshold}% (Specificity)": "#AED6F1",               # Blue for Specificity
+                            "Other": "#D7DBDD"                                               # Neutral gray for others
+                        }
+
+                        # Define category order for consistent legend
+                        combined_category_order = [
+                            f"≥{min_agg_threshold}% (Sensitivity & Specificity)",
+                            f"≥{min_agg_threshold}% (Sensitivity)",
+                            f"≥{min_agg_threshold}% (Specificity)",
+                            "Other"
+                        ]
+
+                        # Create the combined plot
+                        fig_combined = px.scatter(
+                            merged_df2,
+                            x='Bias',
+                            y='Imprecision',
+                            color='Combined Category',
+                            color_discrete_map=combined_color_mapping,
+                            category_orders={"Combined Category": combined_category_order},
+                            title=f'Combined Hexbin-like Plot of Bias vs. Imprecision for Sensitivity and Specificity Categories (≥{min_agg_threshold}%)'
+                        )
+
+                        # Update marker size and style for better distinction
+                        fig_combined.update_traces(marker=dict(size=10, line=dict(width=1, color='black')), mode='markers')
+
+                        # Customize layout
+                        fig_combined.update_layout(
+                            xaxis_title='Bias',
+                            yaxis_title='Imprecision',
+                            legend_title='Combined Category',
+                            template='plotly_white'
+                        )
+
+                        # Show the combined plot in Streamlit
+                        st.plotly_chart(fig_combined, theme="streamlit", use_container_width=True)
 
 
 
@@ -1942,6 +2058,7 @@ if analyze_button:
                             ylim_v10 = "NO"
                             na_quote_2 = "NO: Not obtainable"                               
                         st.write(" ")
+                        st.markdown(f'##### **:blue[APS based on sublevel ({i}) agreement]**')
                         st.markdown(f"""
                                     | APS level | Imprecision | Positive Bias | Negative Bias |
                                     | ----------- | ----------- | ----------- | ----------- |
